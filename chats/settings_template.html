@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки профиля</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+        ::-webkit-scrollbar-button { display: none; }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .settings-container {
+            max-width: 800px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 { font-size: 28px; font-weight: 600; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+
+        .content {
+            padding: 30px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .avatar-section {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 20px;
+        }
+
+        .avatar-wrapper { position: relative; }
+
+        .avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transition: box-shadow 0.15s ease;
+        }
+
+        .avatar:hover {
+            box-shadow: 0 14px 40px rgba(102, 126, 234, 0.45);
+        }
+
+        .avatar-label { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 10px; }
+
+        .avatar-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: box-shadow 0.15s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .avatar-btn:hover {
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.45);
+        }
+
+        .section { margin-bottom: 25px; }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            background: white;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-field::placeholder { color: #999; }
+
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: box-shadow 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .action-btn:hover {
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .session-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .session-btn {
+            flex: 1;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .session-btn:hover {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .back-btn {
+            flex: 1;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .back-btn:hover {
+            background: #218838;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .logout-btn {
+            flex: 1;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            transition: max-height 0.3s ease;
+            overflow: visible;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 { color: #333; font-size: 20px; }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.15s ease;
+        }
+
+        .close-btn:hover { color: #333; }
+
+        .session-list {
+            list-style: none;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .session-item {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+            background: white;
+        }
+
+        .session-item:hover { background: #f5f5f5; border-color: #667eea; }
+        .session-item.selected { border: 3px solid #667eea; background: #f0f4ff; }
+        .session-item.current { background: #28a745; color: white; border-color: #28a745; }
+        .session-item.current:hover { background: #34ce57; }
+        .session-item.active { background: #667eea; color: white; border-color: #667eea; }
+        .session-item.active:hover { background: #7a8ff5; }
+        .session-item.inactive { background: #f0f0f0; color: #999; border-color: #dddddd; opacity: 0.7; }
+        .session-item.inactive:hover { background: #e0e0e0; color: #666; }
+
+        .session-id { font-weight: 600; margin-bottom: 5px; }
+        .session-details { font-size: 12px; color: inherit; opacity: 0.8; }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .modal-btn.primary { background: #667eea; color: white; }
+        .modal-btn.primary:hover { background: #5a6fd6; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+        .modal-btn.danger { background: #dc3545; color: white; }
+        .modal-btn.danger:hover { background: #c82333; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3); }
+        .modal-btn.secondary { background: #6c757d; color: white; }
+        .modal-btn.secondary:hover { background: #5a6268; }
+
+        .custom-select { position: relative; width: 100%; margin: 15px 0; }
+
+        .select-selected {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            padding: 12px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: border-color 0.15s ease;
+        }
+
+        .select-selected:hover { border-color: #667eea; }
+
+        .select-selected:after {
+            content: '';
+            width: 0; height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid #667eea;
+            margin-left: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .select-selected.select-arrow-active:after { transform: rotate(180deg); }
+
+        .select-items {
+            position: absolute;
+            top: 100%; left: 0; right: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            margin-top: 5px;
+            overflow: hidden;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .select-items.show { display: block; }
+
+        .select-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .select-item:last-child { border-bottom: none; }
+        .select-item:hover { background: #f5f5f5; }
+        .select-item.selected { background: #667eea; color: white; }
+        .select-item.selected:hover { background: #5a6fd6; }
+
+        .dropdown-container { overflow: visible; }
+
+        .toast {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 1001;
+        }
+
+        .toast.error { background: #dc3545; }
+
+        #confirmModal .modal-content { border-radius: 20px; overflow: hidden; }
+        #confirmModal .modal-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        #confirmModal .modal-header h2 { color: #495057; font-size: 20px; font-weight: 600; }
+        #confirmModal .modal-buttons { padding: 20px; background: #f8f9fa; border-top: 1px solid #dee2e6; }
+        #confirmModal .modal-btn { padding: 12px 25px; font-size: 14px; font-weight: 600; border-radius: 25px; }
+
+        @media (max-width: 600px) {
+            .avatar-section { flex-direction: column; text-align: center; }
+            .input-group { flex-direction: column; }
+            .input-field { min-width: 100%; }
+            .session-buttons { flex-direction: column; }
+            .nav-buttons { flex-direction: column; }
+            .modal-buttons { flex-direction: column; }
+            .modal-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="header">
+            <h1>Настройки профиля</h1>
+            <p>Управляйте своим аккаунтом</p>
+        </div>
+
+        <div class="content" id="mainContent">
+            <div class="avatar-section">
+                <div class="avatar-wrapper">
+                    <img id="avatarImg" src="" alt="Avatar" class="avatar">
+                </div>
+                <div>
+                    <div class="avatar-label">Ваш аватар</div>
+                    <button class="avatar-btn" onclick="changeAvatar()">Изменить аватар</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Смена имени</div>
+                <div class="input-group">
+                    <input type="text" id="nameInput" class="input-field" placeholder="Введите новое имя">
+                    <button class="action-btn" onclick="changeName()">Изменить имя</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Смена пароля</div>
+                <div class="input-group">
+                    <input type="password" id="passwordInput" class="input-field" placeholder="Новый пароль">
+                    <input type="password" id="confirmPasswordInput" class="input-field" placeholder="Повторите пароль">
+                    <button class="action-btn" onclick="changePassword()">Изменить пароль</button>
+                </div>
+            </div>
+
+            <div class="session-buttons">
+                <button class="session-btn" onclick="showSessions()">Управление сессиями</button>
+                <button class="session-btn" onclick="showCleanup()">Настройка очистки</button>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="back-btn" onclick="backToChat()">← Вернуться в чат</button>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sessionsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Управление сессиями</h2>
+                <button class="close-btn" onclick="closeModal('sessionsModal')">&times;</button>
+            </div>
+            <div id="sessionsList" class="session-list"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn danger" onclick="logoutSelectedSession()">Завершить выбранную</button>
+                <button class="modal-btn danger" onclick="logoutAllSessions()">Завершить все</button>
+                <button class="modal-btn secondary" onclick="closeModal('sessionsModal')">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cleanupModal" class="modal">
+        <div class="modal-content" id="cleanupModalContent">
+            <div class="modal-header">
+                <h2>Настройка очистки сессий</h2>
+                <button class="close-btn" onclick="closeModal('cleanupModal')">&times;</button>
+            </div>
+            <p style="margin-bottom: 15px; color: #666;">Выберите интервал автоматической очистки завершенных сессий:</p>
+            <div class="custom-select" id="cleanupSelect">
+                <div class="select-selected" onclick="toggleDropdown(event)">
+                    <span id="selectedOption">Немедленно</span>
+                </div>
+                <div class="select-items" id="dropdownItems">
+                    <div class="select-item selected" data-value="0" onclick="selectOption(this, event)">Немедленно</div>
+                    <div class="select-item" data-value="86400" onclick="selectOption(this, event)">Каждый день (24 часа)</div>
+                    <div class="select-item" data-value="259200" onclick="selectOption(this, event)">Каждые 3 дня</div>
+                    <div class="select-item" data-value="604800" onclick="selectOption(this, event)">Каждую неделю</div>
+                    <div class="select-item" data-value="1209600" onclick="selectOption(this, event)">Каждые 2 недели</div>
+                    <div class="select-item" data-value="2592000" onclick="selectOption(this, event)">Каждый месяц (30 дней)</div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="saveCleanupSettings()">Сохранить</button>
+                <button class="modal-btn secondary" onclick="closeModal('cleanupModal')">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Подтверждение</h2>
+                <button class="close-btn" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div style="padding: 20px 0; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                <p id="confirmMessage" style="font-size: 16px; color: #333; margin-bottom: 25px; line-height: 1.5;">
+                    Вы уверены, что хотите завершить все сессии кроме текущей?
+                </p>
+            </div>
+            <div class="modal-buttons" style="justify-content: center;">
+                <button class="modal-btn secondary" onclick="closeConfirmModal()" style="min-width: 120px;">Отмена</button>
+                <button class="modal-btn danger" id="confirmActionBtn" onclick="executeConfirmAction()" style="min-width: 120px;">Завершить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" style="display: none;"></div>
+
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        let backend = null;
+        let currentAvatarVersion = 0;
+        let sessions = [];
+        let selectedSessionId = null;
+        let currentInterval = 0;
+        let isDropdownOpen = false;
+        let defaultAvatarBase64 = '';
+        let confirmAction = null;
+
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            backend = channel.objects.backend;
+            backend.loadUserData();
+        });
+
+        window.onload = function() {
+            document.addEventListener('click', function(event) {
+                const select = document.getElementById('cleanupSelect');
+                if (select && !select.contains(event.target) && isDropdownOpen) {
+                    closeDropdown();
+                }
+            });
+        };
+
+        function setDefaultAvatarFromBase64(base64Data) {
+            defaultAvatarBase64 = base64Data;
+            document.getElementById('avatarImg').src = 'data:image/jpeg;base64,' + base64Data;
+        }
+
+        function showDefaultAvatar() {
+            if (defaultAvatarBase64) {
+                document.getElementById('avatarImg').src = 'data:image/jpeg;base64,' + defaultAvatarBase64;
+            }
+        }
+
+        function toggleDropdown(event) {
+            event.stopPropagation();
+            if (isDropdownOpen) { closeDropdown(); } else { openDropdown(); }
+        }
+
+        function openDropdown() {
+            const dropdown = document.getElementById('dropdownItems');
+            const selected = document.querySelector('.select-selected');
+            const modalContent = document.getElementById('cleanupModalContent');
+            dropdown.classList.add('show');
+            selected.classList.add('select-arrow-active');
+            isDropdownOpen = true;
+            modalContent.style.maxHeight = (modalContent.scrollHeight + dropdown.scrollHeight) + 'px';
+        }
+
+        function closeDropdown() {
+            const dropdown = document.getElementById('dropdownItems');
+            const selected = document.querySelector('.select-selected');
+            const modalContent = document.getElementById('cleanupModalContent');
+            dropdown.classList.remove('show');
+            selected.classList.remove('select-arrow-active');
+            isDropdownOpen = false;
+            modalContent.style.maxHeight = '';
+        }
+
+        function selectOption(element, event) {
+            event.stopPropagation();
+            document.querySelectorAll('.select-item').forEach(item => item.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('selectedOption').textContent = element.textContent;
+            currentInterval = parseInt(element.getAttribute('data-value'));
+            closeDropdown();
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast' + (isError ? ' error' : '');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function changeAvatar() { if (backend) backend.changeAvatar(); }
+        function changeName() { const name = document.getElementById('nameInput').value.trim(); if (name && backend) backend.changeName(name); }
+        function changePassword() { const p = document.getElementById('passwordInput').value; const c = document.getElementById('confirmPasswordInput').value; if (backend) backend.changePassword(p, c); }
+        function showSessions() { if (backend) backend.showSessions(); }
+        function showCleanup() { if (backend) backend.showCleanup(); }
+        function backToChat() { if (backend) backend.backToChat(); }
+        function logout() { if (backend) backend.logout(); }
+
+        function updateSessionsList(sessionsData) {
+            const list = document.getElementById('sessionsList');
+            list.innerHTML = '';
+            sessions = sessionsData;
+            selectedSessionId = null;
+            sessions.forEach(session => {
+                const item = document.createElement('div');
+                if (session.is_current) { item.className = 'session-item current'; }
+                else if (session.is_active) { item.className = 'session-item active'; }
+                else { item.className = 'session-item inactive'; }
+                item.onclick = function(e) {
+                    e.stopPropagation();
+                    document.querySelectorAll('.session-item').forEach(el => el.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedSessionId = session.session_id;
+                };
+                const sessionId = document.createElement('div');
+                sessionId.className = 'session-id';
+                sessionId.textContent = session.session_id.substring(0, 8) + '...';
+                const created = session.created_at ? session.created_at.substring(0, 16) : 'неизвестно';
+                const lastUsed = session.last_used_at ? session.last_used_at.substring(0, 16) : 'неизвестно';
+                const status = session.is_current ? 'Текущая' : (session.is_active ? 'Активна' : 'Неактивна');
+                const details = document.createElement('div');
+                details.className = 'session-details';
+                details.textContent = `Создана: ${created} | Последняя активность: ${lastUsed} | ${status}`;
+                item.appendChild(sessionId);
+                item.appendChild(details);
+                list.appendChild(item);
+            });
+        }
+
+        function logoutSelectedSession() {
+            if (!selectedSessionId) { showToast('Выберите сессию для завершения', true); return; }
+            const session = sessions.find(s => s.session_id === selectedSessionId);
+            if (session && session.is_current) { showToast('Нельзя завершить текущую сессию', true); return; }
+            if (backend) backend.logoutSelectedSession(selectedSessionId);
+        }
+
+        function logoutAllSessions() {
+            showConfirmModal('Вы уверены, что хотите завершить все сессии кроме текущей?', function() {
+                if (backend) backend.logoutAllSessions();
+            });
+        }
+
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'cleanupModal' && isDropdownOpen) closeDropdown();
+        }
+
+        function saveCleanupSettings() { if (backend) backend.saveCleanupSettings(currentInterval); }
+
+        function updateAvatar(imageBase64) {
+            if (imageBase64 && imageBase64.length > 0) {
+                document.getElementById('avatarImg').src = 'data:image/jpeg;base64,' + imageBase64;
+            } else {
+                showDefaultAvatar();
+            }
+        }
+
+        function setUsername(username) { document.getElementById('nameInput').value = username; }
+
+        function setCleanupInterval(interval) {
+            currentInterval = interval;
+            document.querySelectorAll('.select-item').forEach(option => {
+                const value = parseInt(option.getAttribute('data-value'));
+                if (value === interval) {
+                    option.classList.add('selected');
+                    document.getElementById('selectedOption').textContent = option.textContent;
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+
+        function clearPasswordFields() {
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('confirmPasswordInput').value = '';
+        }
+
+        function closeAllModals() { closeModal('sessionsModal'); closeModal('cleanupModal'); }
+
+        function showConfirmModal(message, actionCallback) {
+            document.getElementById('confirmMessage').textContent = message;
+            confirmAction = actionCallback;
+            openModal('confirmModal');
+        }
+
+        function closeConfirmModal() { closeModal('confirmModal'); confirmAction = null; }
+        function executeConfirmAction() { if (confirmAction) confirmAction(); closeConfirmModal(); }
+    </script>
+</body>
+</html>

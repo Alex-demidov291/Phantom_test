@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Phantom - Чат</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0a0a0;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        body.no-zoom {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        .chat-container {
+            max-width: 1200px;
+            width: 100%;
+            height: 90vh;
+            background: rgba(255, 255, 255, 0.95);
+            background: #ffffff;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            animation: slideUp 0.5s ease;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .left-panel {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .left-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .left-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .search-input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.3);
+        }
+        .contacts-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 15px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            background: #ffffff;
+        }
+        .contact-item:hover {
+            background: #f5f5f5;
+            transform: translateX(5px);
+        }
+        .contact-item.selected {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+        }
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+            border: 2px solid #e0e0e0;
+        }
+        .contact-info {
+            flex: 1;
+        }
+        .contact-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        .left-footer {
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+        .left-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .left-btn.settings {
+            background: #6c757d;
+            color: white;
+        }
+        .left-btn.settings:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        .left-btn.add {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .left-btn.add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+            overflow: hidden;
+            position: relative;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .chat-header-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+            border: 2px solid #e0e0e0;
+        }
+        .chat-header-info {
+            flex: 1;
+        }
+        .chat-header-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .chat-header-status {
+            font-size: 12px;
+            color: #28a745;
+        }
+        .chat-menu-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-menu-btn:hover {
+            background: #f5f5f5;
+        }
+        .chat-menu {
+            position: relative;
+        }
+        .chat-menu-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+        }
+        .chat-menu-dropdown.show {
+            display: block;
+        }
+        .chat-menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .chat-menu-item:hover {
+            background: #f5f5f5;
+        }
+        .chat-menu-item.delete {
+            color: #dc3545;
+        }
+        .chat-menu-item.delete:hover {
+            background: #ffe6e8;
+        }
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            max-width: 65%;
+            width: fit-content;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+        .message-sent {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+            margin-left: auto;
+        }
+        .message-received {
+            align-self: flex-start;
+            background-color: #ffffff;
+            color: #050505;
+            border-bottom-left-radius: 4px;
+            margin-right: auto;
+        }
+        .message-text {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+        .message-timestamp {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            text-align: right;
+            margin-top: 4px;
+        }
+        .message-received .message-timestamp {
+            text-align: left;
+        }
+        .sender-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #65676b;
+        }
+        .message-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: block;
+        }
+        .message-image:hover {
+            transform: scale(1.02);
+        }
+        .file-attachment {
+            margin-top: 8px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding-top: 8px;
+        }
+        .file-preview {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .message-sent .file-preview {
+            background-color: rgba(255,255,255,0.2);
+        }
+        .message-received .file-preview {
+            background-color: rgba(0,0,0,0.05);
+        }
+        .file-preview:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+        .file-icon {
+            font-size: 32px;
+            margin-right: 12px;
+        }
+        .file-info {
+            flex: 1;
+        }
+        .file-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+        .file-size {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .file-download {
+            margin-left: 12px;
+            font-size: 20px;
+            opacity: 0.7;
+        }
+        .file-download:hover {
+            opacity: 1;
+        }
+        .input-area {
+            padding: 15px 20px;
+            background: transparent;
+            flex-shrink: 0;
+        }
+        .input-panel {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background: transparent;
+        }
+        .attach-menu {
+            position: relative;
+        }
+        .attach-btn {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .attach-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+        .attach-dropdown {
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            min-width: 180px;
+            z-index: 1000;
+            display: none;
+        }
+        .attach-dropdown.show {
+            display: block;
+        }
+        .attach-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .attach-item:hover {
+            background: #f5f5f5;
+        }
+        .attach-item:first-child {
+            border-radius: 15px 15px 0 0;
+        }
+        .attach-item:last-child {
+            border-radius: 0 0 15px 15px;
+        }
+        .message-input {
+            flex: 1;
+            min-height: 44px;
+            max-height: 120px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 22px;
+            font-size: 14px;
+            resize: none;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            font-family: inherit;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .message-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .progress-bar {
+            height: 3px;
+            background: #f0f0f0;
+            border-radius: 1.5px;
+            overflow: hidden;
+            margin: 0 20px 10px 20px;
+            display: none;
+        }
+        .progress-bar.active {
+            display: block;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .scroll-to-bottom {
+            position: absolute;
+            bottom: 90px;
+            right: 30px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            z-index: 1000;
+        }
+        .scroll-to-bottom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .scroll-to-bottom.show {
+            display: flex;
+        }
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            text-align: center;
+            padding: 40px;
+        }
+        .welcome-content {
+            max-width: 400px;
+        }
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .welcome-text {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            color: #333;
+            font-size: 18px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        .modal-close:hover {
+            color: #333;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .modal-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .modal-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .modal-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .modal-btn.secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .modal-btn.secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        .modal-btn.delete {
+            background: #dc3545;
+            color: white;
+        }
+        .modal-btn.delete:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+            z-index: 1001;
+            display: none;
+        }
+        .toast.error {
+            background: #dc3545;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .fullscreen-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .fullscreen-viewer.active {
+            display: flex;
+        }
+        .fullscreen-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+            z-index: 10001;
+            pointer-events: none;
+        }
+        .fullscreen-header button {
+            pointer-events: auto;
+        }
+        .fullscreen-back {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            transform: scale(1) !important;
+        }
+        .fullscreen-back:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .fullscreen-download {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            transform: scale(1) !important;
+        }
+        .fullscreen-download:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .fullscreen-image {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            animation: fadeIn 0.3s ease;
+            transition: transform 0.2s ease;
+            cursor: zoom-in;
+        }
+        .fullscreen-image.zoomed {
+            cursor: zoom-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+                padding: 0;
+            }
+            body {
+                padding: 0;
+            }
+            .left-panel {
+                width: 100%;
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .left-panel.show {
+                transform: translateX(0);
+            }
+            .right-panel {
+                width: 100%;
+            }
+            .back-to-contacts {
+                display: block !important;
+            }
+            .scroll-to-bottom {
+                bottom: 100px;
+                right: 20px;
+            }
+        }
+        .back-to-contacts {
+            display: none;
+            margin-right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #667eea;
+        }
+        /* Индикатор загрузки контактов */
+        .loading-contacts {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="left-panel" id="leftPanel">
+        <div class="left-header">
+            <h2>Phantom</h2>
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Поиск в контактах">
+        </div>
+        <div class="contacts-list" id="contactsList">
+            <div class="loading-contacts">Загрузка контактов...</div>
+        </div>
+        <div class="left-footer">
+            <button class="left-btn settings" onclick="showSettings()">⚙ Настройки</button>
+            <button class="left-btn add" onclick="showAddContactModal()">➕ Добавить</button>
+        </div>
+    </div>
+    <div class="right-panel" id="rightPanel">
+        <div class="chat-header">
+            <span class="back-to-contacts" onclick="toggleContacts()" id="backToContacts">←</span>
+            <img src="" alt="Avatar" class="chat-header-avatar" id="chatAvatar">
+            <div class="chat-header-info">
+                <div class="chat-header-name" id="chatName">Выберите чат</div>
+            </div>
+            <div class="chat-menu">
+                <button class="chat-menu-btn" onclick="toggleChatMenu()">⋮</button>
+                <div class="chat-menu-dropdown" id="chatMenu">
+                    <div class="chat-menu-item" onclick="renameContact()">✏️ Изменить имя</div>
+                    <div class="chat-menu-item" onclick="requestSafetyNumber()">🔒 Защитные номера</div>
+                    <div class="chat-menu-item delete" onclick="deleteChat()">🗑️ Удалить из контактов</div>
+                </div>
+            </div>
+        </div>
+        <div class="messages-container" id="messageContainer"></div>
+        <button class="scroll-to-bottom" id="scrollToBottomBtn" onclick="scrollToBottom()">↓</button>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="input-area">
+            <div class="input-panel">
+                <div class="attach-menu">
+                    <button class="attach-btn" onclick="toggleAttachMenu()" id="attachBtn">📎</button>
+                    <div class="attach-dropdown" id="attachMenu">
+                        <div class="attach-item" onclick="attachFile(false)">
+                            <span>📄</span> Отправить файл
+                        </div>
+                        <div class="attach-item" onclick="attachFile(true)">
+                            <span>🖼️</span> Отправить фото
+                        </div>
+                    </div>
+                </div>
+                <textarea class="message-input" id="messageInput" placeholder="Введите сообщение..." rows="1"
+                          maxlength="3000"></textarea>
+                <button class="send-btn" onclick="sendMessage()" id="sendBtn">➤</button>
+            </div>
+        </div>
+    </div>
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-content">
+            <div class="welcome-icon">💬</div>
+            <div class="welcome-title">Добро пожаловать в Phantom!</div>
+            <div class="welcome-text">
+                В мире, где конфиденциальность стала роскошью,<br>
+                мы обеспечиваем и сохраняем её бесплатной,<br>
+                совмещая с простотой и удобством<br>
+                минималистичного дизайна.<br>
+                Приятного общения!
+            </div>
+        </div>
+    </div>
+</div>
+<div class="fullscreen-viewer" id="fullscreenViewer">
+    <div class="fullscreen-header">
+        <button class="fullscreen-back" onclick="closeFullscreen()">←</button>
+        <button class="fullscreen-download" onclick="downloadFullscreenImage()">💾</button>
+    </div>
+    <img class="fullscreen-image" id="fullscreenImage" src="" alt="" ondblclick="toggleZoom()">
+</div>
+<div class="modal" id="addContactModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Добавить контакт</h3>
+            <button class="modal-close" onclick="closeModal('addContactModal')">&times;</button>
+        </div>
+        <input type="text" class="modal-input" id="contactLoginInput" placeholder="Введите логин пользователя">
+        <div class="modal-buttons">
+            <button class="modal-btn secondary" onclick="closeModal('addContactModal')">Отмена</button>
+            <button class="modal-btn primary" onclick="addContact()">Добавить</button>
+        </div>
+    </div>
+</div>
+<div class="modal" id="deleteConfirmModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Удаление чата</h3>
+            <button class="modal-close" onclick="closeModal('deleteConfirmModal')">&times;</button>
+        </div>
+        <p id="deleteConfirmText">Вы уверены, что хотите удалить этот чат?</p>
+        <div class="modal-buttons">
+            <button class="modal-btn secondary" onclick="closeModal('deleteConfirmModal')">Отмена</button>
+            <button class="modal-btn delete" onclick="confirmDeleteChat()">Удалить</button>
+        </div>
+    </div>
+</div>
+<div class="modal" id="renameModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Переименование</h3>
+            <button class="modal-close" onclick="closeModal('renameModal')">&times;</button>
+        </div>
+        <input type="text" class="modal-input" id="renameInput" placeholder="Введите новое имя">
+        <div class="modal-buttons">
+            <button class="modal-btn secondary" onclick="closeModal('renameModal')">Отмена</button>
+            <button class="modal-btn primary" onclick="confirmRename()">Сохранить</button>
+        </div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+<script>
+    let currentUser = '';
+    let contacts = {};
+    let currentContact = null;
+    let messages = [];
+    let isMobile = window.innerWidth <= 768;
+    let attachMenuOpen = false;
+    let currentFullscreenImageData = null;
+    let currentFullscreenFileName = '';
+    let fullscreenZoomLevel = 1;
+    const ZOOM_STEP = 0.25;
+    const MAX_ZOOM = 3;
+    const MIN_ZOOM = 1;
+
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+        window.qt = channel.objects.qt;
+        if (window.qt && window.qt.loadUserData) {
+            window.qt.loadUserData();
+        }
+    });
+
+    function toggleContacts() {
+        const leftPanel = document.getElementById('leftPanel');
+        leftPanel.classList.toggle('show');
+    }
+
+    window.addEventListener('resize', function() {
+        isMobile = window.innerWidth <= 768;
+        if (!isMobile) {
+            document.getElementById('leftPanel').classList.remove('show');
+        }
+    });
+
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast' + (isError ? ' error' : '');
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    function toggleChatMenu() {
+        document.getElementById('chatMenu').classList.toggle('show');
+    }
+
+    function toggleAttachMenu() {
+        const menu = document.getElementById('attachMenu');
+        attachMenuOpen = !attachMenuOpen;
+        menu.classList.toggle('show');
+    }
+
+    document.addEventListener('click', function(event) {
+        const chatMenu = document.getElementById('chatMenu');
+        const chatBtn = document.querySelector('.chat-menu-btn');
+        if (!chatBtn.contains(event.target) && !chatMenu.contains(event.target)) {
+            chatMenu.classList.remove('show');
+        }
+        const attachMenu = document.getElementById('attachMenu');
+        const attachBtn = document.getElementById('attachBtn');
+        if (!attachBtn.contains(event.target) && !attachMenu.contains(event.target) && attachMenuOpen) {
+            attachMenu.classList.remove('show');
+            attachMenuOpen = false;
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeFullscreen();
+        }
+    });
+
+    document.addEventListener('wheel', function(e) {
+        if (document.getElementById('fullscreenViewer').classList.contains('active')) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+            let newZoom = fullscreenZoomLevel + delta;
+            if (newZoom < MIN_ZOOM) newZoom = MIN_ZOOM;
+            if (newZoom > MAX_ZOOM) newZoom = MAX_ZOOM;
+            if (newZoom !== fullscreenZoomLevel) {
+                fullscreenZoomLevel = newZoom;
+                const img = document.getElementById('fullscreenImage');
+                img.style.transform = `scale(${fullscreenZoomLevel})`;
+                if (fullscreenZoomLevel > 1) {
+                    img.classList.add('zoomed');
+                } else {
+                    img.classList.remove('zoomed');
+                }
+            }
+        }
+    }, { passive: false });
+
+    function toggleZoom() {
+        const img = document.getElementById('fullscreenImage');
+        if (fullscreenZoomLevel > 1) {
+            fullscreenZoomLevel = 1;
+            img.style.transform = 'scale(1)';
+            img.classList.remove('zoomed');
+        } else {
+            fullscreenZoomLevel = 2;
+            img.style.transform = 'scale(2)';
+            img.classList.add('zoomed');
+        }
+    }
+
+    function checkScroll() {
+        const container = document.getElementById('messageContainer');
+        const scrollBtn = document.getElementById('scrollToBottomBtn');
+        if (!container || !scrollBtn) return;
+        const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+        if (isAtBottom) {
+            scrollBtn.classList.remove('show');
+        } else {
+            scrollBtn.classList.add('show');
+        }
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('messageContainer');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function updateContactsList(contactsData) {
+        const list = document.getElementById('contactsList');
+        list.innerHTML = '';
+        contacts = {};
+        contactsData.forEach(contact => {
+            contacts[contact.login] = contact;
+            const item = document.createElement('div');
+            item.className = 'contact-item' + (currentContact && currentContact.login === contact.login ? ' selected' : '');
+            item.setAttribute('data-login', contact.login);
+            item.onclick = () => selectContact(contact.login);
+            const avatar = document.createElement('img');
+            avatar.className = 'contact-avatar';
+            avatar.src = contact.avatar || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 40 40\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'20\' fill=\'%23cccccc\'/%3E%3Ctext x=\'20\' y=\'25\' font-size=\'20\' text-anchor=\'middle\' fill=\'%23999999\'%3E👤%3C/text%3E%3C/svg%3E';
+            const info = document.createElement('div');
+            info.className = 'contact-info';
+            const name = document.createElement('div');
+            name.className = 'contact-name';
+            name.textContent = contact.display_name || contact.username || contact.login;
+            info.appendChild(name);
+            item.appendChild(avatar);
+            item.appendChild(info);
+            list.appendChild(item);
+        });
+        if (contactsData.length === 0) {
+            const empty = document.createElement('div');
+            empty.style.padding = '20px';
+            empty.style.textAlign = 'center';
+            empty.style.color = '#999';
+            empty.textContent = 'Нет контактов';
+            list.appendChild(empty);
+        }
+    }
+
+    function selectContact(login) {
+        currentContact = contacts[login];
+        document.querySelectorAll('.contact-item').forEach(item => {
+            item.classList.remove('selected');
+            if (item.getAttribute('data-login') === login) {
+                item.classList.add('selected');
+            }
+        });
+        document.getElementById('chatName').textContent = currentContact.display_name || currentContact.username || login;
+        if (currentContact.avatar) {
+            document.getElementById('chatAvatar').src = currentContact.avatar;
+        }
+        document.getElementById('welcomeScreen').style.display = 'none';
+        document.getElementById('rightPanel').style.display = 'flex';
+        if (isMobile) {
+            document.getElementById('leftPanel').classList.remove('show');
+        }
+        if (window.qt && window.qt.loadMessages) {
+            window.qt.loadMessages(login);
+        }
+        document.getElementById('messageInput').focus();
+    }
+
+    function displayMessages(messagesData) {
+        const container = document.getElementById('messageContainer');
+        container.innerHTML = '';
+        messages = messagesData;
+        const imageLoadPromises = [];
+        messagesData.forEach(msg => {
+            const hasText = msg.message_text && msg.message_text.trim() !== '';
+            const hasFile = msg.has_file && msg.file_info;
+            if (!hasText && !hasFile) {
+                return;
+            }
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (msg.sender_login === currentUser ? 'message-sent' : 'message-received');
+            messageDiv.setAttribute('data-message-id', msg.id);
+            if (msg.sender_login !== currentUser) {
+                const sender = document.createElement('div');
+                sender.className = 'sender-name';
+                sender.textContent = msg.sender_login;
+                messageDiv.appendChild(sender);
+            }
+            if (hasText) {
+                const text = document.createElement('div');
+                text.className = 'message-text';
+                text.innerHTML = msg.message_text;
+                messageDiv.appendChild(text);
+            }
+            if (hasFile) {
+                const fileInfo = msg.file_info;
+                const isImage = fileInfo.type && fileInfo.type.startsWith('image/') && msg.is_image_only === true;
+                if (isImage) {
+                    const img = document.createElement('img');
+                    img.className = 'message-image';
+                    img.style.opacity = '0';
+                    img.style.transition = 'opacity 0.2s';
+                    const loadPromise = new Promise((resolve) => {
+                        img.onload = () => {
+                            img.style.opacity = '1';
+                            resolve();
+                        };
+                    });
+                    imageLoadPromises.push(loadPromise);
+                    if (fileInfo.thumbnail) {
+                        img.src = 'data:image/jpeg;base64,' + fileInfo.thumbnail;
+                    } else if (fileInfo.full_data) {
+                        img.src = 'data:image/jpeg;base64,' + fileInfo.full_data;
+                    } else {
+                        img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                        img.style.opacity = '0.5';
+                    }
+                    img.setAttribute('data-file-id', fileInfo.id);
+                    img.setAttribute('data-file-name', fileInfo.name || 'image.jpg');
+                    img.setAttribute('data-file-type', fileInfo.type || 'image/jpeg');
+                    img.setAttribute('data-file-size', fileInfo.size || 0);
+                    img.setAttribute('data-full-data', fileInfo.full_data || '');
+                    img.onclick = () => openFullscreen(img);
+                    messageDiv.appendChild(img);
+                } else {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'file-attachment';
+                    const preview = document.createElement('div');
+                    preview.className = 'file-preview';
+                    preview.setAttribute('data-file-id', fileInfo.id);
+                    preview.setAttribute('data-file-name', fileInfo.name || 'file');
+                    preview.setAttribute('data-file-type', fileInfo.type || 'application/octet-stream');
+                    preview.setAttribute('data-file-size', fileInfo.size || 0);
+                    preview.setAttribute('data-is-encrypted', fileInfo.is_encrypted ? '1' : '0');
+                    if (fileInfo.encrypted_key) {
+                        preview.setAttribute('data-encrypted-key', fileInfo.encrypted_key);
+                    }
+                    if (fileInfo.nonce_file) {
+                        preview.setAttribute('data-nonce-file', fileInfo.nonce_file);
+                    }
+                    if (fileInfo.sender_login) {
+                        preview.setAttribute('data-sender-login', fileInfo.sender_login);
+                    }
+                    preview.onclick = () => downloadFile(preview);
+                    const icon = document.createElement('span');
+                    icon.className = 'file-icon';
+                    icon.textContent = fileInfo.icon || '📎';
+                    const info = document.createElement('div');
+                    info.className = 'file-info';
+                    const name = document.createElement('div');
+                    name.className = 'file-name';
+                    name.textContent = fileInfo.name || 'Файл';
+                    const size = document.createElement('div');
+                    size.className = 'file-size';
+                    size.textContent = fileInfo.size ? (fileInfo.size / 1024).toFixed(1) + ' KB' : '';
+                    const download = document.createElement('span');
+                    download.className = 'file-download';
+                    download.textContent = '⬇️';
+                    info.appendChild(name);
+                    info.appendChild(size);
+                    preview.appendChild(icon);
+                    preview.appendChild(info);
+                    preview.appendChild(download);
+                    fileDiv.appendChild(preview);
+                    messageDiv.appendChild(fileDiv);
+                }
+            }
+            if (msg.display_time) {
+                const timestamp = document.createElement('div');
+                timestamp.className = 'message-timestamp';
+                timestamp.textContent = msg.display_time;
+                messageDiv.appendChild(timestamp);
+            }
+            container.appendChild(messageDiv);
+        });
+        Promise.all(imageLoadPromises).then(() => {
+            scrollToBottom();
+        });
+        if (imageLoadPromises.length === 0) {
+            scrollToBottom();
+        }
+    }
+
+    window.updateMessageThumbnail = function(messageId, thumbnailBase64) {
+        const container = document.getElementById('messageContainer');
+        const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+        for (let i = 0; i < messages.length; i++) {
+            if (messages[i].id === messageId) {
+                if (!messages[i].file_info) messages[i].file_info = {};
+                messages[i].file_info.thumbnail = thumbnailBase64;
+                break;
+            }
+        }
+        const msgDiv = document.querySelector(`.message[data-message-id="${messageId}"]`);
+        if (!msgDiv) return;
+        let img = msgDiv.querySelector('.message-image');
+        if (img) {
+            img.style.opacity = '0';
+            img.onload = () => {
+                img.style.opacity = '1';
+                if (wasAtBottom) {
+                    scrollToBottom();
+                }
+            };
+            img.src = 'data:image/jpeg;base64,' + thumbnailBase64;
+            img.style.display = '';
+            return;
+        }
+        const fileAttachment = msgDiv.querySelector('.file-attachment');
+        if (fileAttachment) {
+            const newImg = document.createElement('img');
+            newImg.className = 'message-image';
+            newImg.style.opacity = '0';
+            newImg.style.transition = 'opacity 0.2s';
+            newImg.onload = () => {
+                newImg.style.opacity = '1';
+                if (wasAtBottom) {
+                    scrollToBottom();
+                }
+            };
+            newImg.src = 'data:image/jpeg;base64,' + thumbnailBase64;
+            newImg.style.display = '';
+            const preview = fileAttachment.querySelector('.file-preview');
+            if (preview) {
+                newImg.dataset.fileId = preview.dataset.fileId;
+                newImg.dataset.fileName = preview.dataset.fileName;
+                newImg.dataset.fileType = preview.dataset.fileType;
+                newImg.dataset.fileSize = preview.dataset.fileSize;
+                if (preview.dataset.fileKey) {
+                    newImg.dataset.fileKey = preview.dataset.fileKey;
+                }
+                if (preview.dataset.nonceFile) {
+                    newImg.dataset.nonceFile = preview.dataset.nonceFile;
+                }
+            }
+            newImg.onclick = function() { openFullscreen(this); };
+            fileAttachment.replaceWith(newImg);
+        }
+    };
+
+    function resetMessageInput() {
+        const input = document.getElementById('messageInput');
+        input.value = '';
+        input.style.height = 'auto';
+        input.style.height = '44px';
+        input.style.overflowY = 'hidden';
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        if (!currentContact) {
+            showToast('Выберите контакт для отправки сообщения', true);
+            return;
+        }
+        if (text === '') {
+            showToast('Введите сообщение', true);
+            return;
+        }
+        if (window.qt && window.qt.sendMessage) {
+            window.qt.sendMessage(currentContact.login, text);
+        }
+        resetMessageInput();
+    }
+
+    function attachFile(isImageOnly = false) {
+        if (!currentContact) {
+            showToast('Сначала выберите контакт', true);
+            return;
+        }
+        const text = document.getElementById('messageInput').value;
+        if (window.qt && window.qt.attachFile) {
+            window.qt.attachFile(JSON.stringify({
+                text: text,
+                isImageOnly: isImageOnly
+            }));
+        }
+        document.getElementById('attachMenu').classList.remove('show');
+        attachMenuOpen = false;
+    }
+
+    function downloadFile(element) {
+        if (window.qt && window.qt.downloadFile) {
+            const fileInfo = {
+                id: parseInt(element.dataset.fileId),
+                name: element.dataset.fileName,
+                type: element.dataset.fileType,
+                size: parseInt(element.dataset.fileSize),
+                is_encrypted: element.dataset.isEncrypted === '1',
+                encrypted_key: element.dataset.encryptedKey || null,
+                nonce_file: element.dataset.nonceFile || null,
+                sender_login: element.dataset.senderLogin || null
+            };
+            window.qt.downloadFile(fileInfo.id, JSON.stringify(fileInfo));
+        }
+    }
+
+    function openFullscreen(imgElement) {
+        const viewer = document.getElementById('fullscreenViewer');
+        const fullscreenImg = document.getElementById('fullscreenImage');
+        currentFullscreenImageData = imgElement.dataset.fullData || imgElement.src.replace('data:image/jpeg;base64,', '');
+        currentFullscreenFileName = imgElement.dataset.fileName || 'image.jpg';
+        if (imgElement.dataset.fullData) {
+            fullscreenImg.src = 'data:image/jpeg;base64,' + imgElement.dataset.fullData;
+        } else {
+            fullscreenImg.src = imgElement.src;
+        }
+        document.body.classList.add('no-zoom');
+        viewer.classList.add('active');
+        fullscreenZoomLevel = 1;
+        fullscreenImg.style.transform = 'scale(1)';
+        fullscreenImg.classList.remove('zoomed');
+    }
+
+    function closeFullscreen() {
+        const viewer = document.getElementById('fullscreenViewer');
+        document.body.classList.remove('no-zoom');
+        viewer.classList.remove('active');
+        fullscreenZoomLevel = 1;
+    }
+
+    function downloadFullscreenImage() {
+        if (!currentFullscreenImageData || !currentFullscreenFileName) return;
+        if (window.qt && window.qt.saveFullscreenImage) {
+            window.qt.saveFullscreenImage(currentFullscreenImageData, currentFullscreenFileName);
+        }
+    }
+
+    function updateProgress(percent) {
+        const bar = document.getElementById('progressBar');
+        const fill = document.getElementById('progressFill');
+        if (percent >= 100) {
+            bar.classList.remove('active');
+            fill.style.width = '0%';
+        } else {
+            bar.classList.add('active');
+            fill.style.width = percent + '%';
+        }
+    }
+
+    function showAddContactModal() {
+        document.getElementById('contactLoginInput').value = '';
+        openModal('addContactModal');
+    }
+
+    function addContact() {
+        const login = document.getElementById('contactLoginInput').value.trim();
+        if (!login) {
+            showToast('Введите логин', true);
+            return;
+        }
+        if (window.qt && window.qt.addContact) {
+            window.qt.addContact(login);
+        }
+        closeModal('addContactModal');
+    }
+
+    function deleteChat() {
+        if (!currentContact) {
+            showToast('Нет выбранного чата', true);
+            return;
+        }
+        document.getElementById('deleteConfirmText').textContent =
+            `Вы уверены, что хотите удалить чат с ${currentContact.display_name || currentContact.login}?`;
+        openModal('deleteConfirmModal');
+    }
+
+    function confirmDeleteChat() {
+        if (window.qt && window.qt.deleteChat && currentContact) {
+            window.qt.deleteChat(currentContact.login);
+        }
+        closeModal('deleteConfirmModal');
+    }
+
+    function renameContact() {
+        if (!currentContact) {
+            showToast('Нет выбранного контакта', true);
+            return;
+        }
+        document.getElementById('renameInput').value = currentContact.display_name || currentContact.username || currentContact.login;
+        openModal('renameModal');
+    }
+
+    function confirmRename() {
+        const newName = document.getElementById('renameInput').value.trim();
+        if (newName && window.qt && window.qt.renameContact && currentContact) {
+            window.qt.renameContact(currentContact.login, newName);
+        }
+        closeModal('renameModal');
+    }
+
+    function showSettings() {
+        if (window.qt && window.qt.showSettings) {
+            window.qt.showSettings();
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const searchText = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.contact-item');
+        items.forEach(item => {
+            const name = item.querySelector('.contact-name').textContent.toLowerCase();
+            if (name.includes(searchText)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    const messageInput = document.getElementById('messageInput');
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        const newHeight = Math.min(this.scrollHeight, 120);
+        this.style.height = newHeight + 'px';
+        if (this.scrollHeight > 120) {
+            this.style.overflowY = 'auto';
+        } else {
+            this.style.overflowY = 'hidden';
+        }
+    });
+
+    messageInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    const messageContainer = document.getElementById('messageContainer');
+    if (messageContainer) {
+        messageContainer.addEventListener('scroll', checkScroll);
+    }
+
+    window.setCurrentUser = function(username) {
+        currentUser = username;
+    };
+
+    window.setContacts = function(contactsData) {
+        updateContactsList(contactsData);
+    };
+
+    window.setMessages = function(messagesData) {
+        displayMessages(messagesData);
+    };
+
+    window.showWelcomeScreen = function() {
+        document.getElementById('welcomeScreen').style.display = 'flex';
+        document.getElementById('rightPanel').style.display = 'none';
+    };
+
+    window.appendMessage = function(messageData) {
+        messages.push(messageData);
+        displayMessages(messages);
+        checkScroll();
+    };
+
+    window.updateContactAvatar = function(login, avatarData) {
+        if (contacts[login]) {
+            contacts[login].avatar = avatarData;
+        }
+        updateContactsList(Object.values(contacts));
+        if (currentContact && currentContact.login === login) {
+            document.getElementById('chatAvatar').src = avatarData;
+        }
+    };
+
+    window.showProgress = function(percent) {
+        updateProgress(percent);
+    };
+
+    window.setCurrentContact = function(contactData) {
+        currentContact = contactData;
+        document.getElementById('chatName').textContent = contactData.display_name || contactData.username || contactData.login;
+        document.getElementById('chatAvatar').src = contactData.avatar || '';
+        document.getElementById('welcomeScreen').style.display = 'none';
+        document.getElementById('rightPanel').style.display = 'flex';
+        setTimeout(checkScroll, 100);
+        if (qt && qt.getPeerTrustState && contactData.login) {
+            try {
+                const state = qt.getPeerTrustState(contactData.login);
+                renderTrustBadge(state || 'unknown');
+            } catch (e) { renderTrustBadge('unknown'); }
+        }
+    };
+
+    function renderTrustBadge(state) {
+        let badge = document.getElementById('chatTrustBadge');
+        if (!badge) {
+            const name = document.getElementById('chatName');
+            if (!name) return;
+            badge = document.createElement('span');
+            badge.id = 'chatTrustBadge';
+            badge.style.cssText = 'margin-left:8px;padding:2px 6px;border-radius:10px;font-size:11px;font-weight:bold;cursor:pointer;vertical-align:middle;';
+            badge.onclick = function() {
+                if (qt && qt.viewSafetyNumber && currentContact)
+                    qt.viewSafetyNumber(currentContact.login);
+            };
+            name.parentNode.insertBefore(badge, name.nextSibling);
+        }
+        const presets = {
+            'verified':  ['🔒 verified',   '#1f8a4c', '#e8f5ec'],
+            'unchanged': ['🔒',             '#555',    '#eee'],
+            'unknown':   ['🔒 new',         '#7a5b00', '#fff3cd'],
+            'changed':   ['⚠ key changed', '#a51c1c', '#fdecea'],
+        };
+        const preset = presets[state] || presets['unknown'];
+        badge.textContent = preset[0];
+        badge.style.color = preset[1];
+        badge.style.background = preset[2];
+        badge.title = state || '';
+    }
+    window.renderTrustBadge = renderTrustBadge;
+    function _renderSafetyMatrix(matrix) {
+        const canvas = document.getElementById('safetyQR');
+        if (!canvas || !matrix) return;
+        const ctx = canvas.getContext('2d');
+        const N = matrix.length;
+        const px = Math.floor(canvas.width / N);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#000';
+        for (let r = 0; r < N; r++) {
+            for (let c = 0; c < N; c++) {
+                if (matrix[r][c]) ctx.fillRect(c * px, r * px, px, px);
+            }
+        }
+    }
+    window.showSafetyNumber = function(info) {
+        let modal = document.getElementById('safetyModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'safetyModal';
+            modal.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;'
+                + 'background:rgba(0,0,0,0.55);z-index:9999;display:flex;'
+                + 'align-items:center;justify-content:center;';
+            modal.innerHTML = ''
+              + '<div style="background:#fff;border-radius:8px;padding:24px;max-width:560px;width:92%;font-family:Arial,sans-serif;max-height:92vh;overflow:auto;">'
+              + '<h2 style="margin:0 0 12px 0;font-size:18px;">Защитные номера</h2>'
+              + '<div id="safetyChange" style="margin-bottom:12px;"></div>'
+              + '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">'
+              +   '<canvas id="safetyQR" width="250" height="250" style="background:#fff;border:1px solid #ccc;border-radius:6px;"></canvas>'
+              +   '<div style="flex:1;min-width:220px;">'
+              +     '<pre id="safetyDigits" style="font-family:Menlo,Consolas,monospace;background:#f4f4f4;padding:14px;border-radius:6px;font-size:16px;letter-spacing:1px;text-align:center;line-height:1.5;margin:0 0 10px 0;"></pre>'
+              +     '<div style="font-size:12px;color:#555;margin-bottom:6px;">Скан-код:</div>'
+              +     '<input id="safetyScanCode" readonly style="width:100%;font-family:Menlo,Consolas,monospace;font-size:11px;padding:6px;background:#f4f4f4;border:1px solid #ddd;border-radius:4px;" />'
+              +   '</div>'
+              + '</div>'
+              + '<p style="font-size:13px;color:#555;margin:14px 0 8px 0;">'
+              + 'Сравните 60 цифр или визуальный код с собеседником через надёжный канал '
+              + '(голосом, при встрече). Если они совпадают, переписка не перехвачена. '
+              + 'Если они изменились — кто-то мог заменить ключи.'
+              + '</p>'
+              + '<div style="margin:8px 0 14px 0;">'
+              +   '<label style="display:block;font-size:12px;color:#555;margin-bottom:4px;">Вставьте скан-код собеседника для автоматической проверки:</label>'
+              +   '<div style="display:flex;gap:6px;">'
+              +     '<input id="safetyPeerCode" placeholder="PCSAFETYv1:..." style="flex:1;padding:6px 8px;border:1px solid #ccc;border-radius:4px;font-family:Menlo,Consolas,monospace;font-size:12px;" />'
+              +     '<button id="safetyVerifyBtn" style="padding:6px 12px;background:#1f5fa8;color:#fff;border:none;border-radius:4px;cursor:pointer;">Проверить</button>'
+              +   '</div>'
+              + '</div>'
+              + '<div style="display:flex;justify-content:flex-end;gap:8px;">'
+              + '<button id="safetyMarkVerifiedBtn" style="padding:8px 14px;background:#1f8a4c;color:#fff;border:none;border-radius:4px;cursor:pointer;">Отметить проверенным</button>'
+              + '<button id="safetyCloseBtn" style="padding:8px 14px;background:#666;color:#fff;border:none;border-radius:4px;cursor:pointer;">Закрыть</button>'
+              + '</div>'
+              + '</div>';
+            document.body.appendChild(modal);
+            document.getElementById('safetyCloseBtn').onclick = function() {
+                modal.style.display = 'none';
+            };
+            document.getElementById('safetyMarkVerifiedBtn').onclick = function() {
+                const peer = modal.dataset.peer;
+                if (peer && qt && qt.markPeerVerified) qt.markPeerVerified(peer);
+                modal.style.display = 'none';
+            };
+            document.getElementById('safetyVerifyBtn').onclick = function() {
+                const peer = modal.dataset.peer;
+                const code = document.getElementById('safetyPeerCode').value || '';
+                if (peer && qt && qt.verifyScanCode) qt.verifyScanCode(peer, code);
+            };
+        }
+        modal.dataset.peer = info.peer || '';
+        document.getElementById('safetyDigits').textContent = info.pretty || '';
+        document.getElementById('safetyScanCode').value = info.scan_code || '';
+        document.getElementById('safetyPeerCode').value = '';
+        _renderSafetyMatrix(info.qr_matrix);
+        const change = info.change || 'unknown';
+        const banner = document.getElementById('safetyChange');
+        if (change === 'changed') {
+            banner.style.cssText = 'background:#fdecea;color:#a51c1c;padding:10px;border-radius:6px;font-weight:bold;';
+            banner.textContent = '⚠ Ключ собеседника изменился. Подтвердите личность по другому каналу прежде чем продолжить переписку.';
+        } else if (change === 'unknown') {
+            banner.style.cssText = 'background:#fff3cd;color:#7a5b00;padding:10px;border-radius:6px;';
+            banner.textContent = 'Это первая встреча с этим контактом. Проверьте номера и подтвердите.';
+        } else {
+            banner.style.cssText = 'background:#e8f5ec;color:#1f6c3a;padding:10px;border-radius:6px;';
+            banner.textContent = '✓ Ключ собеседника не менялся с момента последней проверки.';
+        }
+        modal.style.display = 'flex';
+    };
+
+    window.requestSafetyNumber = function() {
+        if (!currentContact || !qt || !qt.viewSafetyNumber) return;
+        qt.viewSafetyNumber(currentContact.login);
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        showWelcomeScreen();
+    });
+</script>
+</body>
+</html>

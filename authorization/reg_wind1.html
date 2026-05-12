@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phantom - Регистрация</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0a0a0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .register-container {
+            max-width: 500px;
+            width: 100%;
+            background: #ffffff;
+
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 30px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-field::placeholder {
+            color: #999;
+        }
+
+        .register-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            margin-top: 10px;
+        }
+
+        .register-btn:hover {
+
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .register-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .terms {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .terms input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .terms label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .terms a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .terms a:hover {
+            text-decoration: underline;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+            z-index: 1001;
+            display: none;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        .loader-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .password-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+            padding-left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="header">
+            <button class="back-btn" onclick="backToLogin()">←</button>
+            <h1>Phantom</h1>
+            <p>Создайте новый аккаунт</p>
+        </div>
+        <div class="content">
+            <div class="input-group">
+                <label class="input-label">Имя</label>
+                <input type="text" class="input-field" id="nameInput" placeholder="Введите ваше имя">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Логин</label>
+                <input type="text" class="input-field" id="loginInput" placeholder="Введите логин">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Пароль</label>
+                <input type="password" class="input-field" id="passwordInput" placeholder="Введите пароль">
+                <div class="password-hint">Минимум 8 символов, заглавные и строчные буквы, цифры</div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Подтверждение</label>
+                <input type="password" class="input-field" id="confirmInput" placeholder="Повторите пароль">
+            </div>
+            <div class="terms">
+                <input type="checkbox" id="termsCheckbox">
+                <label for="termsCheckbox">Я соглашаюсь с <a href="#" onclick="return false;">правилами использования</a> приложения</label>
+            </div>
+            <button class="register-btn" onclick="handleRegister()" id="registerBtn">Зарегистрироваться</button>
+            <div class="loader" id="loader">
+                <div class="loader-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        let backend = null;
+
+        new QWebChannel(qt.webChannelTransport, function(channel) {
+            backend = channel.objects.backend;
+        });
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast' + (isError ? ' error' : '');
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function setLoading(isLoading) {
+            const btn = document.getElementById('registerBtn');
+            const loader = document.getElementById('loader');
+            const checkbox = document.getElementById('termsCheckbox');
+            if (isLoading) {
+                btn.disabled = true;
+                checkbox.disabled = true;
+                loader.classList.add('active');
+            } else {
+                btn.disabled = false;
+                checkbox.disabled = false;
+                loader.classList.remove('active');
+            }
+        }
+
+        function handleRegister() {
+            const login = document.getElementById('loginInput').value.trim();
+            const name = document.getElementById('nameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const confirm = document.getElementById('confirmInput').value;
+            const termsAccepted = document.getElementById('termsCheckbox').checked;
+
+            if (!login || !password || !name || !confirm) {
+                showToast('Заполните все поля!', true);
+                return;
+            }
+
+            if (!termsAccepted) {
+                showToast('Необходимо согласие с правилами', true);
+                return;
+            }
+
+            if (password !== confirm) {
+                showToast('Пароли не совпадают!', true);
+                return;
+            }
+
+            if (backend) {
+                backend.register(login, name, password, confirm);
+            }
+        }
+
+        function backToLogin() {
+            if (backend) {
+                backend.backToLogin();
+            }
+        }
+
+        document.getElementById('loginInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleRegister();
+            }
+        });
+
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleRegister();
+            }
+        });
+
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleRegister();
+            }
+        });
+
+        document.getElementById('confirmInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleRegister();
+            }
+        });
+    </script>
+</body>
+</html>
