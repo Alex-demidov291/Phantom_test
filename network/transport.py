@@ -65,7 +65,10 @@ class SSEListener(QObject):
             elif line.startswith("data:"):
                 data = line[5:].strip()
         if data and event_type:
-            json_data = json.loads(data)
+            try:
+                json_data = json.loads(data)
+            except (ValueError, json.JSONDecodeError):
+                return
             if event_type == 'new_message':
                 self.message_received.emit(json_data)
             elif event_type == 'avatar_updated':

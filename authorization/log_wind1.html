@@ -31,25 +31,24 @@
             background: #a0a0a0;
         }
 
+        html, body {
+            height: 100%;
+        }
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
             margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .login-container {
-            max-width: 450px;
             width: 100%;
-            background: #ffffff;
-
-            border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 24px;
         }
 
         @keyframes slideUp {
@@ -64,25 +63,40 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 40px 30px;
             text-align: center;
+            margin-bottom: 30px;
+            flex-shrink: 0;
+        }
+
+        .logo-img {
+            width: 88px;
+            height: 88px;
+            margin-bottom: 18px;
+            filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
         }
 
         .header h1 {
-            font-size: 36px;
+            font-size: clamp(30px, 5vw, 40px);
             font-weight: 600;
             margin-bottom: 10px;
+            letter-spacing: 0.5px;
         }
 
         .header p {
-            opacity: 0.9;
+            opacity: 0.85;
             font-size: 14px;
         }
 
         .content {
-            padding: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .form {
+            width: 100%;
+            max-width: 360px;
         }
 
         .input-group {
@@ -92,7 +106,7 @@
         .input-label {
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: rgba(255, 255, 255, 0.9);
             margin-bottom: 8px;
             display: block;
         }
@@ -100,42 +114,43 @@
         .input-field {
             width: 100%;
             padding: 15px 20px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid rgba(255, 255, 255, 0.25);
             border-radius: 25px;
             font-size: 14px;
-            transition: background-color 0.15s ease, box-shadow 0.15s ease;
-            background: white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
         }
 
         .input-field:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 4px 10px rgba(0, 0, 0, 0.05);
+            border-color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.22);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
         }
 
         .input-field::placeholder {
-            color: #999;
+            color: rgba(255, 255, 255, 0.65);
         }
 
         .login-btn {
             width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #ffffff;
+            color: #6a4bb0;
             border: none;
             padding: 15px;
             border-radius: 25px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.15s ease, box-shadow 0.15s ease;
-            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
             margin-top: 10px;
         }
 
         .login-btn:hover {
-
-            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
         }
 
         .login-btn:disabled {
@@ -153,16 +168,16 @@
         .register-btn {
             background: transparent;
             border: none;
-            color: #667eea;
+            color: rgba(255, 255, 255, 0.95);
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+            transition: opacity 0.15s ease;
             text-decoration: underline;
         }
 
         .register-btn:hover {
-            color: #764ba2;
+            opacity: 0.75;
         }
 
         .toast {
@@ -208,8 +223,8 @@
             display: inline-block;
             width: 30px;
             height: 30px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -223,24 +238,27 @@
 <body>
     <div class="login-container">
         <div class="header">
+            <img class="logo-img" src="logo.svg" alt="Phantom">
             <h1>Phantom</h1>
             <p>Войдите в свой аккаунт</p>
         </div>
         <div class="content">
-            <div class="input-group">
-                <label class="input-label">Логин</label>
-                <input type="text" class="input-field" id="loginInput" placeholder="Введите ваш логин">
-            </div>
-            <div class="input-group">
-                <label class="input-label">Пароль</label>
-                <input type="password" class="input-field" id="passwordInput" placeholder="Введите ваш пароль">
-            </div>
-            <button class="login-btn" onclick="handleLogin()" id="loginBtn">Войти</button>
-            <div class="loader" id="loader">
-                <div class="loader-spinner"></div>
-            </div>
-            <div class="register-link">
-                <button class="register-btn" onclick="showRegister()">Нет аккаунта? Зарегистрироваться</button>
+            <div class="form">
+                <div class="input-group">
+                    <label class="input-label">Логин</label>
+                    <input type="text" class="input-field" id="loginInput" placeholder="Введите ваш логин">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Пароль</label>
+                    <input type="password" class="input-field" id="passwordInput" placeholder="Введите ваш пароль">
+                </div>
+                <button class="login-btn" onclick="handleLogin()" id="loginBtn">Войти</button>
+                <div class="loader" id="loader">
+                    <div class="loader-spinner"></div>
+                </div>
+                <div class="register-link">
+                    <button class="register-btn" onclick="showRegister()">Нет аккаунта? Зарегистрироваться</button>
+                </div>
             </div>
         </div>
     </div>

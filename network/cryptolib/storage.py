@@ -10,6 +10,7 @@ from network.cryptolib.primitives import (
 PREKEY_KEY_INFO = b'PhantomChats/Storage/PreKeys/v2'
 SESSION_KEY_INFO = b'PhantomChats/Storage/Session/v2'
 CHECKPOINT_KEY_INFO = b'PhantomChats/Storage/Checkpoint/v1'
+BLOB_VERSION_KEY_INFO = b'PhantomChats/Storage/BlobVersion/v1'
 
 
 def _derive_storage_key(master_key, info):
@@ -108,3 +109,21 @@ def load_message_checkpoint(own_login, own_device_id, master_key):
 def save_message_checkpoint(own_login, own_device_id, master_key, data):
     path = str(checkpoint_path(own_login, own_device_id))
     encrypt_and_write(path, master_key, CHECKPOINT_KEY_INFO, data)
+
+
+def blob_version_path(own_login, own_device_id):
+    return device_root_dir(own_login, own_device_id) / 'blob_versions.bin'
+
+
+def load_blob_versions(own_login, own_device_id, master_key):
+    path = str(blob_version_path(own_login, own_device_id))
+    try:
+        data = read_and_decrypt(path, master_key, BLOB_VERSION_KEY_INFO)
+    except Exception:
+        return {}
+    return data or {}
+
+
+def save_blob_versions(own_login, own_device_id, master_key, data):
+    path = str(blob_version_path(own_login, own_device_id))
+    encrypt_and_write(path, master_key, BLOB_VERSION_KEY_INFO, data)

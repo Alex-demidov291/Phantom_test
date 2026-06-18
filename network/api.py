@@ -21,7 +21,6 @@ from network.cryptolib import (
     compute_archive_peer_handle,
     compute_safety_number, format_safety_number,
     safety_qr_payload, verify_scan_code,
-    safety_qr_matrix, render_qr_matrix_ascii,
 )
 from network.cryptolib.master_key_binding import (
     sign_master_key_binding, verify_master_key_binding,
@@ -667,6 +666,27 @@ class MessengerAPI:
         if self.network_manager.session_token:
             data['session_token'] = self.network_manager.session_token
         return self.network_manager.send_sync_request('update_profile', data)
+    def _blob_versions_load(self):
+        from network.cryptolib.storage import load_blob_versions
+        if not (self.user_login and self.device_id and self.master_key_bytes):
+            return {}
+        return load_blob_versions(
+            self.user_login, self.device_id, self.master_key_bytes)
+
+    def _blob_version_remember(self, kind, version):
+        from network.cryptolib.storage import (
+            load_blob_versions, save_blob_versions,
+        )
+        if not (self.user_login and self.device_id and self.master_key_bytes):
+            return
+        versions = load_blob_versions(
+            self.user_login, self.device_id, self.master_key_bytes)
+        if int(version) > int(versions.get(kind, 0)):
+            versions[kind] = int(version)
+            save_blob_versions(
+                self.user_login, self.device_id, self.master_key_bytes,
+                versions)
+
     def _user_blob_get(self, kind):
         resp = self.network_manager.send_sync_request(
             'user_blob_get', {'kind': kind},
@@ -676,11 +696,18 @@ class MessengerAPI:
         blob = resp.get('blob')
         if blob is None:
             return None, 0
+        version = int(blob.get('version', 0))
+        known = int(self._blob_versions_load().get(kind, 0))
+        if version < known:
+            raise UserBlobError(
+                f'rollback обнаружен для blob {kind!r}: сервер вернул '
+                f'версию {version} < известной {known}')
         try:
             payload = decrypt_user_blob(self.master_key_bytes, kind, blob)
         except UserBlobError:
-            return None, blob.get('version', 0)
-        return payload, blob.get('version', 0)
+            return None, version
+        self._blob_version_remember(kind, version)
+        return payload, version
 
     def _user_blob_put(self, kind, payload, expected_version):
         enc = encrypt_user_blob(self.master_key_bytes, kind, payload)
@@ -690,6 +717,9 @@ class MessengerAPI:
             'nonce': enc['nonce'],
             'expected_version': expected_version,
         })
+        if resp and resp.get('success'):
+            new_version = resp.get('version', expected_version + 1)
+            self._blob_version_remember(kind, new_version)
         return resp
 
     def _user_blob_update(self, kind, mutator, default=None, max_attempts=5):
@@ -814,8 +844,6 @@ class MessengerAPI:
         own_user_ik = IdentityKeys.user_ik_pub_bytes(self.master_key_bytes)
         chunks = compute_safety_number(own_user_ik, peer_ik)
         scan_code = safety_qr_payload(own_user_ik, peer_ik)
-        qr_matrix = safety_qr_matrix(scan_code)
-        qr_ascii = render_qr_matrix_ascii(qr_matrix)
         return {
             'peer_login': peer_login,
             'chunks': chunks,
@@ -823,8 +851,6 @@ class MessengerAPI:
             'own_ik': base64.b64encode(own_user_ik).decode(),
             'peer_ik': bundle['identity']['ik'],
             'scan_code': scan_code,
-            'qr_ascii': qr_ascii,
-            'qr_matrix': [[1 if c else 0 for c in row] for row in qr_matrix],
         }
 
     def verify_peer_scan_code(self, peer_login, candidate):

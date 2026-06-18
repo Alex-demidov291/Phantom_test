@@ -460,8 +460,6 @@ class ChatWindow(QWidget):
             'chunks': info['chunks'],
             'change': change,
             'scan_code': info.get('scan_code'),
-            'qr_matrix': info.get('qr_matrix'),
-            'qr_ascii': info.get('qr_ascii'),
         }
         safe_payload = json.dumps(payload)
         self._safe_run_js(

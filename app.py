@@ -730,6 +730,26 @@ class Database:
             return dict(file)
         return None
 
+    def user_can_access_file(self, user_id, login, file_id):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT uploaded_by FROM files WHERE id = ?', (file_id,))
+        row = cursor.fetchone()
+        if not row:
+            conn.close()
+            return False
+        if row[0] == login:
+            conn.close()
+            return True
+        cursor.execute(
+            'SELECT 1 FROM messages WHERE file_id = ? '
+            'AND (sender_user_id = ? OR receiver_user_id = ?) LIMIT 1',
+            (file_id, user_id, user_id),
+        )
+        ok = cursor.fetchone() is not None
+        conn.close()
+        return ok
+
     def get_file_thumbnail(self, file_id):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -1429,11 +1449,14 @@ def create_session_token(session_id, user_id):
 
 
 def verify_session_token(token, user_id):
-    decoded = base64.b64decode(token.encode()).decode()
-    session_id, sig = decoded.split(':', 1)
+    try:
+        decoded = base64.b64decode(token.encode()).decode()
+        session_id, sig = decoded.split(':', 1)
+    except (ValueError, UnicodeDecodeError):
+        return None
     expected = f"{session_id}:{user_id}"
     expected_sig = hmac.new(SECRET_KEY, expected.encode(), hashlib.sha256).hexdigest()
-    if sig != expected_sig:
+    if not hmac.compare_digest(sig, expected_sig):
         return None
     return session_id
 
@@ -1673,9 +1696,20 @@ def opaque_login_finish():
     login = state['login']
     server_state = state['server_state']
 
+    blocked, seconds = db.is_login_blocked(login, device_id)
+    if blocked:
+        db.delete_login_state(state_id)
+        return jsonify({'success': False,
+                        'error': f'Слишком много попыток. Попробуйте через {seconds} секунд.'}), 429
+
     server_setup = opaque_ke_py.ServerSetupData.from_bytes(SERVER_SETUP_BYTES)
-    server_login_finish = opaque_ke_py.server_login_finish(server_state, credential_finalization)
-    server_session_key = server_login_finish.get_session_key()
+    try:
+        server_login_finish = opaque_ke_py.server_login_finish(server_state, credential_finalization)
+        server_session_key = server_login_finish.get_session_key()
+    except Exception:
+        db.delete_login_state(state_id)
+        db.increment_login_attempt(login, device_id)
+        return jsonify({'success': False, 'error': 'Неверный логин или пароль'}), 401
 
     db.delete_login_state(state_id)
 
@@ -2009,6 +2043,9 @@ def get_file(user, data):
     file = db.get_file(file_id)
     if not file:
         return jsonify({'success': False, 'error': 'File not found'})
+
+    if not db.user_can_access_file(user['user_id'], user['login'], file_id):
+        return jsonify({'success': False, 'error': 'Forbidden'}), 403
 
     response = {
         'success': True,
@@ -2684,8 +2721,13 @@ def device_pair_enter():
     cur.execute('''
         UPDATE device_pairings
         SET epk_b_pub = ?, attempts = attempts + 1
-        WHERE pair_id = ?
-    ''', (epk_b_pub, row['pair_id']))
+        WHERE pair_id = ? AND attempts < ?
+    ''', (epk_b_pub, row['pair_id'], PAIRING_ENTRY_ATTEMPT_LIMIT))
+    if cur.rowcount == 0:
+        conn.commit()
+        conn.close()
+        return jsonify({'success': False,
+                        'error': 'too many attempts'}), 429
     conn.commit()
     conn.close()
     db.audit_log_event('device_pair_enter', user_id=row['primary_user_id'])

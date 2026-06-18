@@ -60,7 +60,7 @@ def _header_bytes(header_dict):
 
 class DoubleRatchet:
     def __init__(self, dhs_priv, dhs_pub, dhr_pub, rk, cks, ckr,
-                 ns, nr, pn, skipped):
+                 ns, nr, pn, skipped, prev_dhr_pub=None):
         self.dhs_priv = dhs_priv
         self.dhs_pub = dhs_pub
         self.dhr_pub = dhr_pub
@@ -71,6 +71,7 @@ class DoubleRatchet:
         self.nr = nr
         self.pn = pn
         self.skipped = dict(skipped or {})
+        self.prev_dhr_pub = prev_dhr_pub
 
     @classmethod
     def init_initiator(cls, sk, peer_initial_dh_pub):
@@ -107,6 +108,7 @@ class DoubleRatchet:
                 {'dhr': dhr_b64, 'n': n, 'mk': _b64(mk)}
                 for (dhr_b64, n), mk in self.skipped.items()
             ],
+            'prev_dhr_pub': _b64(self.prev_dhr_pub),
         }
 
     @classmethod
@@ -123,6 +125,7 @@ class DoubleRatchet:
             ckr=_ub64(d['ckr']),
             ns=d['ns'], nr=d['nr'], pn=d['pn'],
             skipped=skipped,
+            prev_dhr_pub=_ub64(d.get('prev_dhr_pub')),
         )
 
     def encrypt(self, plaintext, ad):
@@ -144,16 +147,17 @@ class DoubleRatchet:
             self.dhs_priv, self.dhs_pub, self.dhr_pub,
             self.rk, self.cks, self.ckr,
             self.ns, self.nr, self.pn,
-            dict(self.skipped),
+            dict(self.skipped), self.prev_dhr_pub,
         )
 
     def _restore(self, snap):
         (self.dhs_priv, self.dhs_pub, self.dhr_pub,
          self.rk, self.cks, self.ckr,
-         self.ns, self.nr, self.pn, self.skipped) = (
+         self.ns, self.nr, self.pn, self.skipped,
+         self.prev_dhr_pub) = (
             snap[0], snap[1], snap[2],
             snap[3], snap[4], snap[5],
-            snap[6], snap[7], snap[8], dict(snap[9]),
+            snap[6], snap[7], snap[8], dict(snap[9]), snap[10],
         )
 
     def decrypt(self, header, ciphertext, ad):
@@ -170,6 +174,13 @@ class DoubleRatchet:
                 self._restore(snap)
                 raise DuplicateMessage(
                     f'message n={header["n"]} already consumed (nr={self.nr})'
+                )
+
+            if (not same_chain and self.prev_dhr_pub is not None
+                    and header_dh == self.prev_dhr_pub):
+                self._restore(snap)
+                raise DuplicateMessage(
+                    'message from previous chain already consumed'
                 )
 
             if not same_chain:
@@ -208,10 +219,10 @@ class DoubleRatchet:
                 f'cannot skip {until - self.nr} messages '
                 f'(MAX_SKIP={MAX_SKIP})'
             )
-        if len(self.skipped) > MAX_TOTAL_SKIPPED:
-            raise RatchetError('too many skipped message keys retained')
         dhr_b64 = _b64(self.dhr_pub)
         while self.nr < until:
+            if len(self.skipped) >= MAX_TOTAL_SKIPPED:
+                raise RatchetError('too many skipped message keys retained')
             self.ckr, mk = kdf_chain_key_step(self.ckr)
             self.skipped[(dhr_b64, self.nr)] = mk
             self.nr += 1
@@ -220,6 +231,7 @@ class DoubleRatchet:
         self.pn = self.ns
         self.ns = 0
         self.nr = 0
+        self.prev_dhr_pub = self.dhr_pub
         self.dhr_pub = new_remote_dh_pub
         self.rk, self.ckr = kdf_root_key(self.rk, _dh(self.dhs_priv, self.dhr_pub))
         self.dhs_priv, self.dhs_pub = _gen_dh_keypair()
